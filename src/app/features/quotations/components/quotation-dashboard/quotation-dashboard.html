@@ -1,0 +1,56 @@
+
+<div class="dashboard">
+  <header><p class="eyebrow">CUSTOMER SUPPORT WORKSPACE</p><h1>Insurance quotations</h1><p>Search, compare and review customer quotes.</p></header>
+
+  <input
+    type="search"
+    placeholder="Search by customer name or quotation ID..."
+    [formControl]="searchControl"
+  />
+
+  <section class="controls" aria-label="Quotation controls">
+    <label>Status
+      <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+        <option>All</option><option>Available</option><option>Expired</option>
+      </select>
+    </label>
+    <label>Premium
+      <select [value]="premiumSort()" (change)="premiumSort.set($any($event.target).value)">
+        <option value="asc">Lowest first</option><option value="desc">Highest first</option>
+      </select>
+    </label>
+  </section>
+
+  @if (loading()) {
+    <p class="state" role="status">Loading quotations...</p>
+  }
+
+  @if (error()) {
+    <div class="state error" role="alert"><p>{{ error() }}</p><button (click)="retry()">Retry</button></div>
+  }
+
+  @if (!loading() && !error() && visibleQuotations().length === 0) {
+    <p class="state">No quotations found. Try another search or status.</p>
+  }
+
+  @if (!loading() && !error() && visibleQuotations().length > 0) {
+    <div class="workspace">
+      <section class="list-panel" aria-label="Quotation results">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Quotation ID</th><th>Customer</th><th>Insurance company</th><th>Premium</th><th>Deductible</th><th>Status</th></tr></thead>
+          <tbody>@for (quotation of visibleQuotations(); track quotation.quotationId) {
+            <tr [class.selected]="selectedId() === quotation.quotationId" (click)="selectedId.set(quotation.quotationId)" (keydown.enter)="selectedId.set(quotation.quotationId)" tabindex="0">
+              <td>{{ quotation.quotationId }}</td><td>{{ quotation.customerName }}</td><td>{{ quotation.insuranceCompany }}</td><td>SAR {{ quotation.premium | number:'1.0-0' }}</td><td>SAR {{ quotation.deductible | number:'1.0-0' }}</td><td><span class="badge" [class.expired]="quotation.status === 'Expired'">{{ quotation.status }}</span></td>
+            </tr>
+          }</tbody>
+        </table></div>
+      </section>
+      <aside class="details" aria-label="Selected quotation details">
+        @if (selectedQuotation(); as quotation) {
+          <p class="eyebrow">SELECTED QUOTATION</p><h2>{{ quotation.customerName }}</h2>
+          <dl><dt>Quotation ID</dt><dd>{{ quotation.quotationId }}</dd><dt>Insurance company</dt><dd>{{ quotation.insuranceCompany }}</dd><dt>Premium</dt><dd>SAR {{ quotation.premium | number:'1.0-0' }}</dd><dt>Deductible</dt><dd>SAR {{ quotation.deductible | number:'1.0-0' }}</dd><dt>Status</dt><dd>{{ quotation.status }}</dd></dl>
+        } @else { <h2>Quotation details</h2><p>Select a quotation to inspect its details.</p> }
+      </aside>
+    </div>
+  }
+</div>
